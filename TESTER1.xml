@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2.1 (Build 705U_SU)" ts="2016-10-25 23:57:39">
+<Routine name="TESTER1" type="INT" languagemode="0" timestamp="64216,85221.019977"><![CDATA[
+TESTER1
+    ;
+try(code,%returnVal) q:'$g(code)="" ""
+    n $etrap
+    s $etrap="g catch^"_$t(+0) ; goto the 'catch' code in the current routine
+    x code
+    q:$quit $g(%returnVal) q
+catch s $ec=""
+    q:$quit "" q
+    ;
+replCommand() ; This REPL command works in Cache'
+    q "u $p:(::""DQCT"") n $et s $et=""u $p w """"<ERROR>"""",$ec,! s $ec="""""""""" f  x ""u $p n %in,%in1 w $c(13,10)_"""">"""" r %in i $l(%in) r %in1#1 x %in""" ; The %in1 variable ends up holding the CR or LF that terminated the READ
+    ;
+REPL(%port,%host,%timeout) q:$g(%port)=""
+    s:$g(%timeout)="" %timeout=30
+    n %dv,%in
+    s %dv="|TCP|"_$j ; _%port ; A device name
+    w !,"Opening connection."
+    OPEN %dv:($g(%host):%port:"A"):%timeout s:$g(%host)'="" %conn=$T 
+    USE %dv READ:$g(%host)="" %in:%timeout s:$g(%host)="" %conn=$T ; if this is a server socket, we need to wait for a read command to complete for a connection to be established
+    i %conn d  i 1
+    . USE 0 w !,"Connection established.  Passing socket to new job running REPL..."
+    . USE %dv JOB try($$replCommand()):(:4:$io:$io):%timeout ; The return value of $$try is lost, which is ok.
+    . USE 0 w $s($t:"successfully",1:"unsuccessfully")
+    e  USE 0 w !,"Connection refused."
+    USE 0 w !,"Closing connector in this job." CLOSE %dv
+    q
+    ;
+    ;
+]]></Routine>
+</Export>
